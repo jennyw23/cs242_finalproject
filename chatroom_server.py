@@ -9,4 +9,5 @@ socket.bind(HOST, PORT)
 socket.listen()
 print('Waiting for client connections')
 
+# Create threads for each client that connects
 while True:
