@@ -10,6 +10,7 @@ class Server(Thread):
         self.host = '127.0.0.1'
         self.port = 1060
         self.clients = []
+        self.usernames = set()
     
     def run(self):
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,12 +33,23 @@ class Server(Thread):
             # create thread for client
             new_client_thread = ClientThread(connection, address, self)
 
+            self.check_username(new_client_thread)
+
             # begin the new thread
             new_client_thread.start()
 
             # add thread to active connections 
             self.clients.append(new_client_thread)
             print('Ready to receive messages from', connection.getpeername())
+
+    def check_username(self, client):
+        client.send('Please enter a username: ')
+        username = client.connection.recv(1024).decode('ascii')
+        while username in self.usernames:
+            client.send('Username taken. Please enter a new username: ')
+            username = client.connection.recv(1024).decode('ascii')
+        self.usernames.add(username)
+        client.name = username
 
 
     def broadcast(self, message, source):
@@ -54,6 +66,7 @@ class ClientThread(Thread):
         self.connection = connection
         self.address = address
         self.server = server
+        self.name = None
     
     def run(self):
         while True:
@@ -61,6 +74,7 @@ class ClientThread(Thread):
             message = self.connection.recv(1024).decode('ascii')
 
             if message != "":
+                message = self.name + ': ' + message
                 print(self.address, ': ', message)
                 self.server.broadcast(message, self.address)
             else:

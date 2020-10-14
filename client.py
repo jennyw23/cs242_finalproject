@@ -10,7 +10,7 @@ class Send(threading.Thread):
     """
     This class listens for user input from the command line.
     """
-    def __init__(self, sock, name):
+    def __init__(self, sock):
         """
         Initialize instance variables.
         sock: The socket object to be connected
@@ -18,7 +18,7 @@ class Send(threading.Thread):
         """
         super().__init__()
         self.sock = sock
-        self.name = name
+        # self.name = name
 
     def run(self):
         """
@@ -26,7 +26,8 @@ class Send(threading.Thread):
         Typing 'QUIT' closes connection between client and server
         """
         while True:
-            message = input('{}: '.format(self.name))
+            # message = input('{}: '.format(self.name))
+            message = input()
 
             # Type 'QUIT' to leave the chatroom
             if message.upper() == 'QUIT':
@@ -35,7 +36,8 @@ class Send(threading.Thread):
             
             # Send message to server for broadcasting
             else:
-                self.sock.sendall('{}: {}'.format(self.name, message).encode('ascii'))
+                # self.sock.sendall('{}: {}'.format(self.name, message).encode('ascii'))
+                self.sock.sendall(message.encode('ascii'))
         
         print('\nQuitting...')
         self.sock.close()
@@ -46,7 +48,7 @@ class Receive(threading.Thread):
     """
     This class listens for incoming messages from the server.
     """
-    def __init__(self, sock, name):
+    def __init__(self, sock):
         """
         Initialize instance variables.
         sock: The socket object to be connected
@@ -54,7 +56,7 @@ class Receive(threading.Thread):
         """
         super().__init__()
         self.sock = sock
-        self.name = name
+        # self.name = name
 
     def run(self):
         """
@@ -65,7 +67,8 @@ class Receive(threading.Thread):
             message = self.sock.recv(1024).decode('ascii')
 
             if message:
-                print('\r{}\n{}: '.format(message, self.name), end = '')
+                # print('\r{}\n{}: '.format(message, self.name), end = '')
+                print(message)
             
             else:
                 # Server has closed the socket, exit the program
@@ -102,23 +105,23 @@ class Client:
         self.sock.connect((self.host, self.port))
         print('Successfully connected to {}:{}'.format(self.host, self.port))
         
-        print()
-        self.name = input('Please input your screen name: ')
+        # print()
+        # self.name = input('Please input your screen name: ')
 
-        print()
-        print('Welcome, {}!'.format(self.name))
+        # print()
+        # print('Welcome, {}!'.format(self.name))
 
         # Create send and receive threads
-        send = Send(self.sock, self.name)
-        receive = Receive(self.sock, self.name)
+        send = Send(self.sock)
+        receive = Receive(self.sock)
 
         # Start send and receive threads
         send.start()
         receive.start()
 
-        self.sock.sendall('Server: {} has joined the chat. Say hi!'.format(self.name).encode('ascii'))
+        # self.sock.sendall('Server: {} has joined the chat. Say hi!'.format(self.name).encode('ascii'))
         print("\rYou're now ready to send and receive messages! To leave the chatroom, type 'QUIT'\n")
-        print('{}: '.format(self.name), end = '')
+        # print('{}: '.format(self.name), end = '')
 
         return receive
 
