@@ -11,7 +11,7 @@ class Server(Thread):
         self.host = '127.0.0.1'
         self.port = 1060
         self.clients = []
-        self.usernames = set()
+        self.usernames = dict()
     
     def run(self):
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,10 +48,10 @@ class Server(Thread):
     def check_username(self, client):
         client.send('Please enter a username: ')
         username = client.connection.recv(1024).decode('ascii')
-        while username in self.usernames:
+        while username in self.usernames.keys():
             client.send('Username taken. Please enter a new username: ')
             username = client.connection.recv(1024).decode('ascii')
-        self.usernames.add(username)
+        self.usernames[username] = client
         client.name = username
 
 
@@ -62,7 +62,7 @@ class Server(Thread):
     
     def remove_client(self, client):
         self.clients.remove(client)
-        self.usernames.remove(client.name)
+        self.usernames.pop(client.name, None)
 
 class ClientThread(Thread):
     def __init__(self, connection, address, server):
@@ -85,11 +85,23 @@ class ClientThread(Thread):
                 server.remove_client(self)
                 return
             
-            # prepend message with the client's name to show where it came from
-            message = self.name + ': ' + message
-            print(self.address, ': ', message)
-            self.server.broadcast(message, self.address)
-            # else:
+            if (message[0] == '+'):
+                try:
+                    username, message = message[1:].split(' ', 1)
+                    # prepend message to show it was a private message from another user
+                    message = '(private) ' + self.name + ': ' + message
+                    print(self.address, ': ', message)
+                    try:
+                        server.usernames.get(username, None).send(message)
+                    except:
+                        self.send('Server: User \'{}\' not found'.format(username))
+                except:
+                    continue
+            else:
+                # prepend message with the client's name to show where it came from
+                message = self.name + ': ' + message
+                print(self.address, ': ', message)
+                self.server.broadcast(message, self.address)
                        
     
     def send(self, message):
