@@ -1,12 +1,15 @@
-import threading
+from threading import Thread
 import socket
 import argparse
 import os
 
+# To run, use command: python client.py 'localhost'
+# TODO: allow command line argument of IP address (?)
+
 terriIP = 'localhost'
 terriHOST = '192.168.8.104'
 
-class Send(threading.Thread):
+class SendThread(Thread):
     """
     This class listens for user input from the command line.
     """
@@ -40,7 +43,7 @@ class Send(threading.Thread):
         os._exit(0)
 
 
-class Receive(threading.Thread):
+class ReceiveThread(Thread):
     """
     This class listens for incoming messages from the server.
     """
@@ -48,11 +51,9 @@ class Receive(threading.Thread):
         """
         Initialize instance variables.
         sock: The socket object to be connected
-        name: Inputted username
         """
         super().__init__()
         self.sock = sock
-        # self.name = name
 
     def run(self):
         """
@@ -86,7 +87,7 @@ class Client:
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.name = None
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     def start(self):
         """
@@ -102,14 +103,14 @@ class Client:
         
 
         # Create send and receive threads
-        send = Send(self.sock)
-        receive = Receive(self.sock)
+        sendThread = SendThread(self.sock)
+        receiveThread = ReceiveThread(self.sock)
 
         # Start send and receive threads
-        send.start()
-        receive.start()
+        sendThread.start()
+        receiveThread.start()
 
-        return receive
+        return receiveThread
 
 
 def main(host, port):
