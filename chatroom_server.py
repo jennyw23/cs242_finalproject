@@ -97,6 +97,12 @@ class ClientThread(Thread):
                         self.send('Server: User \'{}\' not found'.format(username))
                 except:
                     continue
+            
+            elif (message.lower() == 'list'):
+                names = 'List of users in the chatroom:\n'
+                for username in server.usernames.keys():
+                    names += '- ' + username + '\n'
+                self.send(names)
             else:
                 # prepend message with the client's name to show where it came from
                 message = self.name + ': ' + message
