@@ -46,13 +46,14 @@ class Server(Thread):
             print('Ready to receive messages from', connection.getpeername(), new_client_thread.name)
 
     def check_username(self, client):
-        client.send('Please enter a username: ')
+        client.send('Server: Please enter a username. ')
         username = client.connection.recv(1024).decode('ascii')
         while username in self.usernames.keys():
-            client.send('Username taken. Please enter a new username: ')
+            client.send('Server: Username taken. Please enter a new username: ')
             username = client.connection.recv(1024).decode('ascii')
         self.usernames[username] = client
         client.name = username
+        client.send('Server: Welcome to the chat! Your username is {}.'.format(client.name))
 
 
     def broadcast(self, message, source):
