@@ -7,7 +7,6 @@ import os
 # TODO: allow command line argument of IP address (?)
 
 terriIP = 'localhost'
-terriHOST = '192.168.8.104'
 
 class SendThread(Thread):
     """
